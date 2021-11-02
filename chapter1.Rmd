@@ -3,6 +3,8 @@
 
 This is my RMD-output site for course exercises in Open Data Science MOOC-course. My repository for this course can be found [here] (https://github.com/Rad-ish/IODS-project)
 
+I'm new to version control in github, so let's see if this becomes a habit. 
+
 
 ```{r, echo=FALSE}
 # This is a so-called "R chunk" where you can write R code.
