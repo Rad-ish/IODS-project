@@ -5,12 +5,10 @@ This is my RMD-output site for course exercises in Open Data Science MOOC-course
 
 I'm new to version control in github, so let's see if this becomes a habit. :) 
 
+Done:
+* Registered to github, installed it and pushed my first files
+* Committed and pushed updated files to git 
 
-```{r, echo=FALSE}
-# This is a so-called "R chunk" where you can write R code.
 
-date()
-
-```
 
 

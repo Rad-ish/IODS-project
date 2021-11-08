@@ -1,12 +1,197 @@
-# Setting up for the course
+# Excercise 2
 
 
-* Registered to github, installed it and pushed my first files
-* Committed and pushed updated files to git 
+
+#### Read the wrangled data
+
+This data consist of seven variables and 166 observations. The data was collected in 2014 (Vehkalahti, 2014) from students attending to a statistics in social sciences course. The survey assessed attitudes towards statistics, individual learning styles and points achieved in the course by the individual. In the data used here, items have been aggregated (Attitude, deep, strat, surf), and divided by the N of items. Further, rows where Points = 0 were removed from the dataset (N = 183, after removing zeros, N = 166).
+
+More information of the dataset at hand can be found [here](https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt) 
+
+*Kimmo Vehkalahti: ASSIST 2014 - Phase 3 (end of Part 2), N=183
+Course: Johdatus yhteiskuntatilastotieteeseen, syksy 2014
+(Introduction to Social Statistics, fall 2014 - in Finnish),
+international survey of Approaches to Learning, made possible
+by Teachers' Academy funding for KV in 2013-2015.*
 
 
-```{r, echo=FALSE}
+```{r, message=FALSE, warning=FALSE}
+
+setwd("C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data")
+lrn <- read.csv("lrn.csv")
+
+
 date()
+
+library(tidyverse)
+library(viridis)
+
+#Rename gender variable for plotting purposes
+lrn <- 
+  lrn %>%
+  mutate(gender=recode(gender, "M"="Male", "F"="Female"))
+
+
+
+
+head(lrn)
 ```
 
+
+
+## Summarising and visualising data
+
+Below you can find a summary of the data produced by describe from the psych-library. After this I examined the data visually.
+
+First we take a look at the distribution of age and gender, and we see that the males attending to this course were older than the females. Second we look at the distribution in attitudes towards statistics, where we find the mean (marked as an asterix) and median being higher among males. Third, I was interested if age had any association to the points acquired, for which a a loess smooth was calculated to overfit the data.
+
+After this I plotted a few scatter plots with geom_smooths (OLS regressions) to assess relationships among variables. We find a clear relation between attitude and points earned in the course. After this relation of attitude was examined to learning styles. Visually this relationship seems to be only among males. 
+
+Further, the relation of learning strategies to acquired course points were assessed. Here we can find and association of learning strategies to points earned and high learning strategy associated with lower course points. However, CI-bands are quite wide. 
+
+```{r, message=FALSE, warning=FALSE}
+#Using the psych library for extensive summary 
+library(psych)
+describe(lrn)
+
+#Age * sex
+lrn %>%
+  ggplot(aes(gender, Age, colour=gender)) +
+  geom_violin() +
+  scale_colour_viridis_d(option="H") +
+    geom_boxplot(width=0.2, size=0.2, color="black", alpha=0.4, outlier.size = 0) +
+    stat_summary(fun=mean, geom="point", size=1, color="black", shape=8) +
+  theme_bw() 
+  
+
+#Attitud * Sex
+lrn %>%
+  ggplot(aes(gender, Attitude, color=gender)) +
+  geom_violin() +
+  scale_colour_viridis_d(option="H") +
+    geom_boxplot(width=0.2, size=0.2, color="black", alpha=0.4, outlier.size = 0) +
+    stat_summary(fun=mean, geom="point", size=1, color="black", shape=8) +
+  theme_bw()
+
+#Age's relation to points
+lrn %>%
+  ggplot(aes(Age, Points, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=loess) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+
+
+
+#Attitude * points
+lrn %>%
+  ggplot(aes(Attitude, Points, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+
+#Attitude * learning style deep
+lrn %>%
+  ggplot(aes(Attitude, deep, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+
+#Attitude * learning strategy
+lrn %>%
+  ggplot(aes(Attitude, stra, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+#attitude + surface learning style
+lrn %>%
+  ggplot(aes(Attitude, surf, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+
+
+#Learning style deep * points
+
+lrn %>%
+  ggplot(aes(deep, Points, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+lrn %>%
+  ggplot(aes(stra, Points, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+lrn %>%
+  ggplot(aes(surf, Points, color=gender)) +
+  geom_point(alpha=0.2) +
+  geom_smooth(method=lm) +
+  scale_colour_viridis_d(option="H") +
+  theme_bw()
+
+
+
+
+
+
+
+
+
+  
+  
+```
+
+
+
+## Fitting a regression model
+
+For this exercise we were asked to fit three IV's to model the relationship to points earned, which is the DV of the model, and remove non significant IV's in the final model.
+
+I will fit the model (OLS regression) with attitude, learning strategy and surface learning as IV's, as the association was of these was observed in the above visualisations.
+
+Below we can see the summaries of lfit (with all the three IV's aforementioned) and lfit2 (attitude as the only IV). We find that that the attitude has a quite of a strong association to the points acquired (B = 3.39, p = <.001). Surface learning strategy is associated negatively to the outcome, and learning strategies positively, however these two were far from significant. Surface learning style and stra were not significantly associated to Points as single predictors either.  The multiple R squared is .1 higher in lfit, so the added predictors do account to a tiny bit of the variance explained. However, taking into account the NS of these predictors and that the adjusted R squared change is only <.1, we can be happy with attitude explaining 19% of the variance in acquired course points.  
+
+```{r, message=FALSE, warning=FALSE}
+
+lfit <- lm(Points ~ Attitude + surf + stra, data=lrn)
+
+summary(lfit)
+
+#removing NS IV's
+
+lfit2 <- lm(Points ~ Attitude, data=lrn)
+
+summary(lfit2)
+
+
+
+
+
+```
+
+
+## Diagnostic plots for regression model 
+
+Residuals vs fitted plot show us that the assumption of linear association is reasonable. Q-Q plot affirms us the assumption of normality, notwithstanding that a few outliers emerge. However, no observations exceed the measure of Cook's distance as seen in Residuals vs. leverage plot. According to these diagnostics, the LM assumption of Points ~ Attitude is valid.
+
+```{r, message=FALSE, warning=FALSE}
+
+plot(lfit2)
+
+
+```
 
