@@ -273,16 +273,15 @@ div.tocify {
 <h1>Excercise 2</h1>
 <div id="read-the-wrangled-data" class="section level4">
 <h4>Read the wrangled data</h4>
-<p>This data consist of seven variables and 166 observations. The data was collected in 2014 (Vehkalahti, 2014) from students attending to a statistics in social sciences course. The survey assessed attitudes towards statistics, individual learning styles and points achieved in the course by the individual. In the data used here, items have been aggregated (Attitude, deep, strat, surf), and divided by the N of items. Further, rows where Points = 0 were removed from the dataset (N = 183, after removing zeros, N = 166).</p>
+<p>This data consist of seven variables and 166 observations. The data was collected in 2014 (Vehkalahti, 2014) from students attending to a statistics in social sciences course. The survey assessed attitudes towards statistics, individual learning styles and points achieved in the course by the individual. In the data used here, items have been aggregated (Attitude, deep, strat, surf), and divided by the N of items. Further, rows where Points = 0 were removed from the dataset (N = 183, after removing zeros, N = 166). <strong>Find my R-file for data wrangling <a href="https://github.com/Rad-ish/IODS-project/blob/master/data/create_learning2014.R">here</a>.</strong></p>
 <p>More information of the dataset at hand can be found <a href="https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt">here</a></p>
 <p><em>Kimmo Vehkalahti: ASSIST 2014 - Phase 3 (end of Part 2), N=183 Course: Johdatus yhteiskuntatilastotieteeseen, syksy 2014 (Introduction to Social Statistics, fall 2014 - in Finnish), international survey of Approaches to Learning, made possible by Teachers’ Academy funding for KV in 2013-2015.</em></p>
 <pre class="r"><code>setwd(&quot;C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data&quot;)
 lrn &lt;- read.csv(&quot;lrn.csv&quot;)
 
 
-date()</code></pre>
-<pre><code>## [1] &quot;Mon Nov 08 17:32:10 2021&quot;</code></pre>
-<pre class="r"><code>library(tidyverse)
+
+library(tidyverse)
 library(viridis)
 
 #Rename gender variable for plotting purposes

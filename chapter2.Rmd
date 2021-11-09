@@ -4,7 +4,7 @@
 
 #### Read the wrangled data
 
-This data consist of seven variables and 166 observations. The data was collected in 2014 (Vehkalahti, 2014) from students attending to a statistics in social sciences course. The survey assessed attitudes towards statistics, individual learning styles and points achieved in the course by the individual. In the data used here, items have been aggregated (Attitude, deep, strat, surf), and divided by the N of items. Further, rows where Points = 0 were removed from the dataset (N = 183, after removing zeros, N = 166).
+This data consist of seven variables and 166 observations. The data was collected in 2014 (Vehkalahti, 2014) from students attending to a statistics in social sciences course. The survey assessed attitudes towards statistics, individual learning styles and points achieved in the course by the individual. In the data used here, items have been aggregated (Attitude, deep, strat, surf), and divided by the N of items. Further, rows where Points = 0 were removed from the dataset (N = 183, after removing zeros, N = 166). **Find my R-file for data wrangling [here](https://github.com/Rad-ish/IODS-project/blob/master/data/create_learning2014.R).**
 
 More information of the dataset at hand can be found [here](https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS3-meta.txt) 
 
@@ -21,7 +21,6 @@ setwd("C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-proje
 lrn <- read.csv("lrn.csv")
 
 
-date()
 
 library(tidyverse)
 library(viridis)
