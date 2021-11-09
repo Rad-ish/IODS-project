@@ -40,7 +40,7 @@ head(lrn)
 
 ## Summarising and visualising data
 
-Below you can find a summary of the data produced by describe from the psych-library. After this I examined the data visually.
+Below you can find a summary of the data produced by describe from the psych-library. After this I examined the data visually using ggpairs. After this I ran two plots to show the distributions more clearly and further run a few geom_smooths for fun. I tried to add the viridis colouring to the ggpairs, but it didn't get applicated to all of the plots. If you, dear student-peer-reviewer, have a solution to this, please comment your solution in the peer-review. 
 
 First we take a look at the distribution of age and gender, and we see that the males attending to this course were older than the females. Second we look at the distribution in attitudes towards statistics, where we find the mean (marked as an asterix) and median being higher among males. Third, I was interested if age had any association to the points acquired, for which a a loess smooth was calculated to overfit the data.
 
@@ -51,7 +51,12 @@ Further, the relation of learning strategies to acquired course points were asse
 ```{r, message=FALSE, warning=FALSE}
 #Using the psych library for extensive summary 
 library(psych)
+library(GGally)
 describe(lrn)
+
+
+
+ggpairs(lrn, mapping = aes(col=gender, alpha=0.2), lower=list(combo = wrap("facethist", bins =20))) + scale_colour_viridis_d(option = "H")
 
 #Age * sex
 lrn %>%
@@ -185,11 +190,11 @@ summary(lfit2)
 
 ## Diagnostic plots for regression model 
 
-Residuals vs fitted plot show us that the assumption of linear association is reasonable. Q-Q plot affirms us the assumption of normality, notwithstanding that a few outliers emerge. However, no observations exceed the measure of Cook's distance as seen in Residuals vs. leverage plot. According to these diagnostics, the LM assumption of Points ~ Attitude is valid.
+Residuals vs fitted plot show us that the assumption of linear association is reasonable. Q-Q plot affirms us the assumption of normality, notwithstanding that a few outliers emerge. According to these diagnostics, the LM assumption of Points ~ Attitude is reasonably valid.
 
 ```{r, message=FALSE, warning=FALSE}
-
-plot(lfit2)
+par(mfrow = c(2,2))
+plot(lfit2, which=c(1,2,5))
 
 
 ```
