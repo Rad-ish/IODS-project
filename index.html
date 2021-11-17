@@ -475,7 +475,7 @@ plot(lfit2, which=c(1,2,5))</code></pre>
 <div id="excercise-3" class="section level1">
 <h1>Excercise 3</h1>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Wed Nov 17 14:51:16 2021&quot;</code></pre>
+<pre><code>## [1] &quot;Wed Nov 17 15:11:49 2021&quot;</code></pre>
 <pre class="r"><code>setwd(&quot;C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data&quot;)
 pormath &lt;- read.csv(&quot;pormath.csv&quot;)
 
@@ -800,7 +800,7 @@ Total
 </td>
 </tr>
 <td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="4">
-χ<sup>2</sup>=14.304 · df=3 · Cramer’s V=0.197 · Fisher’s p=0.004
+χ<sup>2</sup>=14.304 · df=3 · Cramer’s V=0.197 · Fisher’s p=0.002
 </td>
 </tr>
 </table>
@@ -913,7 +913,7 @@ Total
 </td>
 </tr>
 <td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="4">
-χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.065
+χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.074
 </td>
 </tr>
 </table>
@@ -968,20 +968,8 @@ pormath_s &lt;- mutate(pormath_s, probability = probabilities)
 # use the probabilities to make a prediction of high_use
 pormath_s &lt;- mutate(pormath_s, prediction = probability &gt; 0.5)
 
-# see the last ten original classes, predicted probabilities, and class predictions
-select(pormath_s, failures, famrel, high_use, probability, prediction) %&gt;% tail(10)</code></pre>
-<pre><code>##     failures famrel high_use probability prediction
-## 361        1      5     TRUE   0.3304793      FALSE
-## 362        0      4     TRUE   0.2517781      FALSE
-## 363        0      4     TRUE   0.3141721      FALSE
-## 364        0      3     TRUE   0.3744020      FALSE
-## 365        0      3    FALSE   0.3744020      FALSE
-## 366        0      4     TRUE   0.2517781      FALSE
-## 367        0      4    FALSE   0.2517781      FALSE
-## 368        1      4     TRUE   0.3920483      FALSE
-## 369        2      5     TRUE   0.4861093      FALSE
-## 370        1      4    FALSE   0.3920483      FALSE</code></pre>
-<pre class="r"><code># tabulate the target variable versus the predictions
+
+# tabulate the target variable versus the predictions
 table(high_use = pormath_s$high_use, prediction = pormath_s$prediction)</code></pre>
 <pre><code>##         prediction
 ## high_use FALSE TRUE
@@ -1013,12 +1001,12 @@ loss_func(class = pormath_s$high_use, prob = pormath_s$probability)</code></pre>
 <pre class="r"><code>cv &lt;- boot::cv.glm(data = pormath_s, cost = loss_func, glmfit = m1, K = 10)
 
 cv$delta</code></pre>
-<pre><code>## [1] 0.3054054 0.3040541</code></pre>
+<pre><code>## [1] 0.3081081 0.3064865</code></pre>
 </div>
 <div id="trying-to-find-a-better-model-for-predictive-power" class="section level2">
 <h2>Trying to find a better model for predictive power</h2>
 <p>Here I compare two different models to the M1 tested above. Before evaluating predictive power further, I examine these models by BIC change and R^2 -change. We find the third model below being the best of the three according to BIC and R^2 measures.</p>
-<p>Further, the prediction power of M3 (cross-validated error rate = 22%) exceeds the power of the first model (M1, 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (26% error rate).</p>
+<p>Further, the prediction power of M3 (cross-validated error rate about 22%) exceeds the power of the first model (M1, about 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (about 26% error rate).</p>
 <p>According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66 — 4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68 — 2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28 — 0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.95 — 2.37), however it is worth noting, that predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50 — 0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04 — 1.13).</p>
 <pre class="r"><code>jtools::summ(m1)</code></pre>
 <pre><code>## MODEL INFO:
@@ -1116,20 +1104,8 @@ pormath &lt;- mutate(pormath, probability = probabilities3)
 # use the probabilities to make a prediction of high_use
 pormath &lt;- mutate(pormath, prediction = probability &gt; 0.5)
 
-# see the last ten original classes, predicted probabilities, and class predictions
-select(pormath, high_use, failures, sex, address, famrel, goout, absences, prediction) %&gt;% tail(10)</code></pre>
-<pre><code>##     high_use failures sex address famrel goout absences prediction
-## 361     TRUE        1   M       R      5     3        7      FALSE
-## 362     TRUE        0   M       R      4     3        3      FALSE
-## 363     TRUE        0   M       R      4     1        2      FALSE
-## 364     TRUE        0   M       U      3     4        4       TRUE
-## 365    FALSE        0   M       U      3     2        3      FALSE
-## 366     TRUE        0   M       U      4     3        4      FALSE
-## 367    FALSE        0   M       U      4     2        0      FALSE
-## 368     TRUE        1   M       R      4     4        4       TRUE
-## 369     TRUE        2   M       R      5     4        8       TRUE
-## 370    FALSE        1   M       R      4     2        0      FALSE</code></pre>
-<pre class="r"><code># tabulate the target variable versus the predictions
+
+# tabulate the target variable versus the predictions
 table(high_use = pormath$high_use, prediction = pormath_s$prediction)</code></pre>
 <pre><code>##         prediction
 ## high_use FALSE TRUE
@@ -1156,7 +1132,7 @@ loss_func1(class = pormath$high_use, prob = pormath$probability)</code></pre>
 cv2 &lt;- boot::cv.glm(data = pormath, cost = loss_func, glmfit = m3, K = 10)
 #print error-rate of cross-validation
 cv2$delta</code></pre>
-<pre><code>## [1] 0.2189189 0.2210811</code></pre>
+<pre><code>## [1] 0.2162162 0.2175676</code></pre>
 </div>
 </div>
 

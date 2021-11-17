@@ -149,8 +149,6 @@ pormath_s <- mutate(pormath_s, probability = probabilities)
 # use the probabilities to make a prediction of high_use
 pormath_s <- mutate(pormath_s, prediction = probability > 0.5)
 
-# see the last ten original classes, predicted probabilities, and class predictions
-select(pormath_s, failures, famrel, high_use, probability, prediction) %>% tail(10)
 
 # tabulate the target variable versus the predictions
 table(high_use = pormath_s$high_use, prediction = pormath_s$prediction)
@@ -196,7 +194,7 @@ cv$delta
 
 Here I compare two different models to the M1 tested above. Before evaluating predictive power further, I examine these models by BIC change and R^2 -change. We find the third model below being the best of the three according to BIC and R^2 measures. 
 
-Further, the prediction power of M3 (cross-validated error rate = 22%) exceeds the power of the first model (M1, 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (26% error rate). 
+Further, the prediction power of M3 (cross-validated error rate about 22%) exceeds the power of the first model (M1, about 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (about 26% error rate). 
 
 According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66 --- 4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68 --- 2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28 --- 0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.95 --- 2.37), however it is worth noting, that  predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50 --- 0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04 --- 1.13).
 
@@ -223,8 +221,6 @@ pormath <- mutate(pormath, probability = probabilities3)
 # use the probabilities to make a prediction of high_use
 pormath <- mutate(pormath, prediction = probability > 0.5)
 
-# see the last ten original classes, predicted probabilities, and class predictions
-select(pormath, high_use, failures, sex, address, famrel, goout, absences, prediction) %>% tail(10)
 
 # tabulate the target variable versus the predictions
 table(high_use = pormath$high_use, prediction = pormath_s$prediction)
