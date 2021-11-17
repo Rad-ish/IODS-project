@@ -89,7 +89,7 @@ p4 <- (pormath %>%
     stat_summary(fun.data = mean_se, geom = "errorbar", width=0.1, size=0.5) +
   theme_bw() +
   ylab("Alcohol use") +
-  xlab("Attended nursery school?")
+  xlab("Familial relations \n (1 = very bad, 5 = excellent)")
 )
 
 plot_grid(p1, p2, p3, p4)
