@@ -1,11 +1,253 @@
-# Excercise ?
+# Excercise 3
 
 
-
-
-
-```{r, echo=FALSE}
+```{r, message=FALSE, warning=FALSE}
 date()
+
+setwd("C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data")
+pormath <- read.csv("pormath.csv")
+
+library(dplyr)
+library(tidyverse)
+library(GGally)
+library(viridis)
+library(sjPlot)
+library(cowplot)
+
+
 ```
 
+## Data at hand
+
+In this Exercise, the data assessed is retrieved from the Machine Learning Repository, collected by Paolo Cortez. It comprises of two data sets of Secondary school students from Portuguese schools. The data comprises of both school reports and questionnaires. More information about the data set used in this exercise can be found [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). The two separate data sets are about performance in maths and Portuguese, respectively. Only the  participants who were in the both data sets, are included in the combined data used in this exercise and others excluded. Hereby, the total N of observations is 370.  
+
+
+```{r, message=FALSE, warning=FALSE}
+
+colnames(pormath)
+
+```
+
+
+## Choosing four variables of interest and assessing their association to high consumption of alcohol 
+
+The association of the following variables to high alcohol consumption will be assessed. High alcohol consumption here is defined as > 2, which is computed from alcohol consumption during weekdays summed with alcohol consumption during weekends (very low=1, to very high=5) divided by two. 
+
+In the following arguments for choosing these variables, I won't be citing any research, since it is out of the scope of the current exercise. However, for presenting working hypotheses, I shortly argue why I except certain outcomes. Furthermore, I have not familiarised myself with the socio-cultural nor with the contextual factors that should be taken into account when assessing the following factors.
+
+First, parental cohabitation (*Pstatus*) is an interesting variable, since co-parenting is often associated with better all-round well-being in children and adolescents. I expect cohabiting parenthood being associated with lower levels of alcohol consumption. Second, I find interesting to assess if attending to *nursery* has an association with alcohol consumption. As I am not familiar with the system regarding nurseries in Portugal, I can only take a wild guess, and except that those who attended nursery school (i.e., pre-school) have been more prepared to start primary school, and therefore experienced less hardships related to the very start of their educational path. Third, I assess the association of number of past class *failures* with high alcohol consumption. I assume that some adolescents not having resources (social or emotional/instrumental) to cope with failures, may build self-handicapping strategies, which then may turn into a vicious cycle; hence the higher the amount of failures, the higher the probability of high alcohol consumption. Finally, I except the perceived familial relations (*famrel*) having also an association with the alcohol consumption outcome: the higher the familial relations, the lower the probability of high alcohol consumption. 
+
+## Graphical and X-tabs examination of associations of selected variables to alcohol consumption
+
+
+
+
+```{r, message=FALSE, warning=FALSE}
+###Select the variables to a new DF####
+pormath_s <- pormath %>%
+  select(Pstatus, nursery, failures, famrel, sex, age, high_use)
+
+### Change logical high_use to numerical ####
+#pormath_s$high_use <- as.numeric(pormath_s$high_use) # 1 = True, 0 = False
+ 
+### Distributions with the discrete variable (alc_use) ####
+p1 <- (pormath %>%
+  ggplot(aes(Pstatus, alc_use)) +
+  see::geom_violinhalf() +
+    geom_boxplot(width=0.2, size=0.2, alpha=0.4) +
+    stat_summary(fun=mean, geom="point", size=1, color="black", shape=8) +
+    stat_summary(fun.data = mean_se, geom = "errorbar", width=0.1, size=0.5) +
+  theme_bw() +
+  ylab("Alcohol use") +
+  xlab("Parents Apart (A) or Together (T)?")
+  )
+
+p2 <- (pormath %>%
+  ggplot(aes(nursery, alc_use)) +
+  see::geom_violinhalf() +
+    geom_boxplot(width=0.2, size=0.2, alpha=0.4) +
+    stat_summary(fun=mean, geom="point", size=1, color="black", shape=8) +
+    stat_summary(fun.data = mean_se, geom = "errorbar", width=0.1, size=0.5) +
+  theme_bw() +
+  ylab("Alcohol use") +
+  xlab("Attended nursery school?")
+)
+
+p3 <- (pormath %>%
+  ggplot(aes(failures, alc_use, color=alc_use)) +
+    stat_summary(fun=mean, geom="point", size=1, color="black", shape=8) +
+    stat_summary(fun.data = mean_se, geom = "errorbar", width=0.1, size=0.5) +
+  theme_bw() +
+  ylab("Alcohol use") +
+  xlab("Number of past Class failures")
+)
+
+
+p4 <- (pormath %>%
+  ggplot(aes(famrel, alc_use)) +
+    stat_summary(fun=mean, geom="point", size=1, color="black", shape=8) +
+    stat_summary(fun.data = mean_se, geom = "errorbar", width=0.1, size=0.5) +
+  theme_bw() +
+  ylab("Alcohol use") +
+  xlab("Attended nursery school?")
+)
+
+plot_grid(p1, p2, p3, p4)
+
+
+
+
+### Cross-tabulations ####
+
+
+tab_xtab(var.row = pormath_s$Pstatus, var.col = pormath_s$high_use, title = "Parents Cohabiting?", show.row.prc = TRUE)
+
+tab_xtab(var.row = pormath_s$nursery, var.col = pormath_s$high_use, title = "Attended to Nursery School?", show.row.prc = TRUE)
+
+tab_xtab(var.row = pormath_s$failures, var.col = pormath_s$high_use, title = "Number of past Class failures", show.row.prc = TRUE)
+
+tab_xtab(var.row = pormath_s$famrel, var.col = pormath_s$high_use, title = "Familial relations", show.row.prc = TRUE)
+
+
+
+```
+
+
+
+
+
+## Fitting a Logistic Regression
+
+Of the expectations, only two of the variables had statistically signicant relationship with high consumption of alcohol, namely number of past class failures with a positive prediction (CI 95 % for OR  = 1.31-2.86) and family relations with a negative prediction (CI 95% for OR = 0.60 - 0.98). The other two variables had no statistically significant relationship with high consumption of alcohol. 
+
+```{r, message=FALSE, warning=FALSE}
+
+m1 <- glm(high_use ~ Pstatus + nursery + failures + famrel, family="binomial", data=pormath_s)
+jtools::summ(m1)
+OR1 <- coef(m1) %>% exp
+CI1 <- confint(m1) %>% exp
+cbind(OR1, CI1)
+
+
+
+
+```
+
+## Cross-tabulated predictions
+
+Here I further examine the predictive power of the predictors, that were significant in the above model. The predictive power is fair, as it predicted about 30% of the outcomes wrong.  
+
+
+```{r, message=FALSE, warning=FALSE}
+
+# predict() the probability of high_use
+probabilities <- predict(m1, type = "response")
+
+# add the predicted probabilities to 'alc'
+pormath_s <- mutate(pormath_s, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+pormath_s <- mutate(pormath_s, prediction = probability > 0.5)
+
+# see the last ten original classes, predicted probabilities, and class predictions
+select(pormath_s, failures, famrel, high_use, probability, prediction) %>% tail(10)
+
+# tabulate the target variable versus the predictions
+table(high_use = pormath_s$high_use, prediction = pormath_s$prediction)
+
+ggplot(pormath_s, aes(probability, high_use, col=prediction)) +
+  geom_point() 
+
+table(high_use = pormath_s$high_use, prediction = pormath_s$prediction) %>% prop.table %>% addmargins
+
+
+
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# call loss_func to compute the average number of wrong predictions in the (training) data
+loss_func(class = pormath_s$high_use, prob = pormath_s$probability)
+
+
+
+```
+
+
+## Cross-Validating the model
+
+The ten-fold cross-validation shows a close performance of the predictive power of this model in the training and test sets (about 31% wrong) compared to to testing it with the whole data (30 % wrong).  
+
+```{r, message=FALSE, warning=FALSE}
+
+loss_func(class = pormath_s$high_use, prob = pormath_s$probability)
+cv <- boot::cv.glm(data = pormath_s, cost = loss_func, glmfit = m1, K = 10)
+
+cv$delta
+
+
+
+
+
+```
+
+## Trying to find a better model for predictive power
+
+Here I compare two different models to the M1 tested above. Before evaluating predictive power further, I examine these models by BIC change and R^2 -change. We find the third model below being the best of the three according to BIC and R^2 measures. 
+
+Further, the prediction power of M3 (cross-validated error rate = 22%) exceeds the power of the first model (M1, 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (26% error rate). 
+
+According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66---4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68---2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28---0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.9538249---2.3728914), however it is worth noting, that  predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50---0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04---1.13).
+
+
+```{r, message=FALSE, warning=FALSE}
+
+jtools::summ(m1)
+
+jtools::summ(glm(high_use ~ failures + sex + address + famrel + freetime + goout + internet, family="binomial", data=pormath)) #freetime and internet access not significant; removing them.
+
+jtools::summ(glm(high_use ~ failures + sex + address + famrel  + goout + absences, family="binomial", data=pormath))
+
+m3 <- glm(high_use ~ failures + sex + address + famrel  + goout + absences, family="binomial", data=pormath)
+exp(cbind(OR = coef(m3), confint(m3)))
+
+
+
+# predict() the probability of high_use
+probabilities3 <- predict(m3, type = "response")
+
+# add the predicted probabilities 
+pormath <- mutate(pormath, probability = probabilities3)
+
+# use the probabilities to make a prediction of high_use
+pormath <- mutate(pormath, prediction = probability > 0.5)
+
+# see the last ten original classes, predicted probabilities, and class predictions
+select(pormath, high_use, failures, sex, address, famrel, goout, absences, prediction) %>% tail(10)
+
+# tabulate the target variable versus the predictions
+table(high_use = pormath$high_use, prediction = pormath_s$prediction)
+
+ggplot(pormath, aes(probability, high_use, col=prediction)) +
+  geom_point() 
+
+table(high_use = pormath$high_use, prediction = pormath$prediction) %>% prop.table %>% addmargins
+
+
+
+loss_func1 <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# call loss_func to compute the average number of wrong predictions in the (training) data
+loss_func1(class = pormath$high_use, prob = pormath$probability)
+
+#cross-validate
+cv2 <- boot::cv.glm(data = pormath, cost = loss_func, glmfit = m3, K = 10)
+#print error-rate of cross-validation
+cv2$delta
+
+```
 
