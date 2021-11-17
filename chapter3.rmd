@@ -118,7 +118,7 @@ tab_xtab(var.row = pormath_s$famrel, var.col = pormath_s$high_use, title = "Fami
 
 ## Fitting a Logistic Regression
 
-Of the expectations, only two of the variables had statistically signicant relationship with high consumption of alcohol, namely number of past class failures with a positive prediction (CI 95 % for OR  = 1.31-2.86) and family relations with a negative prediction (CI 95% for OR = 0.60 - 0.98). The other two variables had no statistically significant relationship with high consumption of alcohol. 
+Of the expectations, only two of the variables had statistically signicant relationship with high consumption of alcohol, namely number of past class failures with a positive prediction (CI 95 % for OR  = 1.31 --- 2.86) and family relations with a negative prediction (CI 95% for OR = 0.60 --- 0.98). The other two variables had no statistically significant relationship with high consumption of alcohol. 
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -198,7 +198,7 @@ Here I compare two different models to the M1 tested above. Before evaluating pr
 
 Further, the prediction power of M3 (cross-validated error rate = 22%) exceeds the power of the first model (M1, 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (26% error rate). 
 
-According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66---4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68---2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28---0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.9538249---2.3728914), however it is worth noting, that  predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50---0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04---1.13).
+According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66 --- 4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68 --- 2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28 --- 0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.95 --- 2.37), however it is worth noting, that  predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50 --- 0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04 --- 1.13).
 
 
 ```{r, message=FALSE, warning=FALSE}

@@ -475,7 +475,7 @@ plot(lfit2, which=c(1,2,5))</code></pre>
 <div id="excercise-3" class="section level1">
 <h1>Excercise 3</h1>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Wed Nov 17 12:48:25 2021&quot;</code></pre>
+<pre><code>## [1] &quot;Wed Nov 17 14:39:33 2021&quot;</code></pre>
 <pre class="r"><code>setwd(&quot;C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data&quot;)
 pormath &lt;- read.csv(&quot;pormath.csv&quot;)
 
@@ -913,14 +913,14 @@ Total
 </td>
 </tr>
 <td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="4">
-χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.068
+χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.065
 </td>
 </tr>
 </table>
 </div>
 <div id="fitting-a-logistic-regression" class="section level2">
 <h2>Fitting a Logistic Regression</h2>
-<p>Of the expectations, only two of the variables had statistically signicant relationship with high consumption of alcohol, namely number of past class failures with a positive prediction (CI 95 % for OR = 1.31-2.86) and family relations with a negative prediction (CI 95% for OR = 0.60 - 0.98). The other two variables had no statistically significant relationship with high consumption of alcohol.</p>
+<p>Of the expectations, only two of the variables had statistically signicant relationship with high consumption of alcohol, namely number of past class failures with a positive prediction (CI 95 % for OR = 1.31 — 2.86) and family relations with a negative prediction (CI 95% for OR = 0.60 — 0.98). The other two variables had no statistically significant relationship with high consumption of alcohol.</p>
 <pre class="r"><code>m1 &lt;- glm(high_use ~ Pstatus + nursery + failures + famrel, family=&quot;binomial&quot;, data=pormath_s)
 jtools::summ(m1)</code></pre>
 <pre><code>## MODEL INFO:
@@ -1013,13 +1013,13 @@ loss_func(class = pormath_s$high_use, prob = pormath_s$probability)</code></pre>
 <pre class="r"><code>cv &lt;- boot::cv.glm(data = pormath_s, cost = loss_func, glmfit = m1, K = 10)
 
 cv$delta</code></pre>
-<pre><code>## [1] 0.3054054 0.3048649</code></pre>
+<pre><code>## [1] 0.3000000 0.2986486</code></pre>
 </div>
 <div id="trying-to-find-a-better-model-for-predictive-power" class="section level2">
 <h2>Trying to find a better model for predictive power</h2>
 <p>Here I compare two different models to the M1 tested above. Before evaluating predictive power further, I examine these models by BIC change and R^2 -change. We find the third model below being the best of the three according to BIC and R^2 measures.</p>
 <p>Further, the prediction power of M3 (cross-validated error rate = 22%) exceeds the power of the first model (M1, 30% error rate) tested above, and moreover exceeds the predictive power of the model introduced in the course Datacamp (26% error rate).</p>
-<p>According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66—4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68—2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28—0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.9538249—2.3728914), however it is worth noting, that predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50—0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04—1.13).</p>
+<p>According to this model (M3, last summary below), males had higher probability of high alcohol consumption compared to their female counterparts (CI 95 % for OR = 1.66 — 4.76). Second, adolescents who spent more time outside, were also more likely to exceed our cut-off point for high alcohol consumption (CI 95 % for OR = 1.68 — 2.77). Third, adolescents living in urban areas were less likely to do so compared to their counterparts living in rural areas (CI 95 % for OR = 0.28 — 0.97). Fourth, adolescents who had failed classes, were more likely to do so (CI 95 % for OR = 0.95 — 2.37), however it is worth noting, that predicting alcohol consumption based on experienced failures with this data builds on a very few observations (see observations in each class from the cross-tabulations above). Fifth, adolescents with good familial relations were less likely to do so (CI 95 % for OR = 0.50 — 0.89). Finally, adolescents with more absences were also more likely to consume more alcohol, however the OR was quite modest (CI 95 % for OR = 1.04 — 1.13).</p>
 <pre class="r"><code>jtools::summ(m1)</code></pre>
 <pre><code>## MODEL INFO:
 ## Observations: 370
@@ -1156,7 +1156,7 @@ loss_func1(class = pormath$high_use, prob = pormath$probability)</code></pre>
 cv2 &lt;- boot::cv.glm(data = pormath, cost = loss_func, glmfit = m3, K = 10)
 #print error-rate of cross-validation
 cv2$delta</code></pre>
-<pre><code>## [1] 0.2162162 0.2210811</code></pre>
+<pre><code>## [1] 0.2108108 0.2148649</code></pre>
 </div>
 </div>
 
