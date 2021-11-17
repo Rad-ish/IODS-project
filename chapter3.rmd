@@ -1,8 +1,7 @@
-# Excercise 3
+# Exercise 3
 
 
 ```{r, message=FALSE, warning=FALSE}
-date()
 
 setwd("C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data")
 pormath <- read.csv("pormath.csv")

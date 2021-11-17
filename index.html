@@ -269,8 +269,8 @@ div.tocify {
 <p>Done: * Registered to github, installed it and pushed my first files * Committed and pushed updated files to git</p>
 <hr />
 </div>
-<div id="excercise-2" class="section level1">
-<h1>Excercise 2</h1>
+<div id="exercise-2" class="section level1">
+<h1>Exercise 2</h1>
 <div id="read-the-wrangled-data" class="section level4">
 <h4>Read the wrangled data</h4>
 <p>This data consist of seven variables and 166 observations. The data was collected in 2014 (Vehkalahti, 2014) from students attending to a statistics in social sciences course. The survey assessed attitudes towards statistics, individual learning styles and points achieved in the course by the individual. In the data used here, items have been aggregated (Attitude, deep, strat, surf), and divided by the N of items. Further, rows where Points = 0 were removed from the dataset (N = 183, after removing zeros, N = 166). <strong>Find my R-file for data wrangling <a href="https://github.com/Rad-ish/IODS-project/blob/master/data/create_learning2014.R">here</a>.</strong></p>
@@ -472,10 +472,8 @@ plot(lfit2, which=c(1,2,5))</code></pre>
 <hr />
 </div>
 </div>
-<div id="excercise-3" class="section level1">
-<h1>Excercise 3</h1>
-<pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Wed Nov 17 15:11:49 2021&quot;</code></pre>
+<div id="exercise-3" class="section level1">
+<h1>Exercise 3</h1>
 <pre class="r"><code>setwd(&quot;C:/Users/rekar/Documents/Road to PhD/Kurssit/Open data science/IODS-project/data&quot;)
 pormath &lt;- read.csv(&quot;pormath.csv&quot;)
 
@@ -913,7 +911,7 @@ Total
 </td>
 </tr>
 <td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="4">
-χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.074
+χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.077
 </td>
 </tr>
 </table>
@@ -1001,7 +999,7 @@ loss_func(class = pormath_s$high_use, prob = pormath_s$probability)</code></pre>
 <pre class="r"><code>cv &lt;- boot::cv.glm(data = pormath_s, cost = loss_func, glmfit = m1, K = 10)
 
 cv$delta</code></pre>
-<pre><code>## [1] 0.3081081 0.3064865</code></pre>
+<pre><code>## [1] 0.3027027 0.3021622</code></pre>
 </div>
 <div id="trying-to-find-a-better-model-for-predictive-power" class="section level2">
 <h2>Trying to find a better model for predictive power</h2>
@@ -1132,7 +1130,7 @@ loss_func1(class = pormath$high_use, prob = pormath$probability)</code></pre>
 cv2 &lt;- boot::cv.glm(data = pormath, cost = loss_func, glmfit = m3, K = 10)
 #print error-rate of cross-validation
 cv2$delta</code></pre>
-<pre><code>## [1] 0.2162162 0.2175676</code></pre>
+<pre><code>## [1] 0.2108108 0.2135135</code></pre>
 </div>
 </div>
 
