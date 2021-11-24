@@ -1,0 +1,159 @@
+# Exercise 4
+
+
+In this exercise the data used is the Boston dataset included in the MASS package. It comprises of 506 observations of 14 variables. The original rationale of the data was to predict housing prices by the NOx-levels by the area [(see Harrison & Rubinfield, 1978)](https://doi.org/10.1016/0095-0696(78)90006-2). The 506 observations are of census tracts, and not districts as I supposed by the structure of the data. Details of the variables can be found [here](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html)
+
+Further, the rationale of this exercise is to find appropriate number of clusters. 
+
+Below you find the summary of the variables, overview of the data and density plots of the variables and finally the correlation plot of the data.
+
+From these figures we can see, that accessibility to radial highways (rad) correlates strongly, (r = .91), with full-value property-tax rate (tax). The NOx levels seem to be negatively correlated to distance to Boston employment centers (r = -.75), in other word, the further from these centres, the lower the NOx-levels. Further, it seems like that the older the buildings the higher the NOx levels (r = .73), which I assume might  correspond to city-center areas. With eyeballing these figures, it could be argued that the data might be clustered to two clusters which correspond to the shapes, peaks and polarisation seen in the density plots. 
+
+
+```{r, message=FALSE, warning=FALSE, fig.width=20, fig.height=20}
+library(tidyverse)
+library(corrplot)
+library(MASS)
+library(viridis)
+library(GGally)
+data("Boston")
+
+str(Boston)
+summary(Boston)
+
+
+
+
+```
+```{r, message=FALSE, warning=FALSE, fig.width=20, fig.height=20}
+pairs(Boston)
+
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+
+Boston %>%
+  gather(key=var_name, value = value) %>%
+  ggplot(aes(x=value)) +
+  geom_density() +
+  facet_wrap(~var_name, scales="free") + theme_bw()
+
+cor_matrix <- cor(Boston) %>% round(digits = 2)
+cor_matrix
+corrplot(cor_matrix, method="color", type = "lower", cl.pos="b", tl.pos="d", tl.cex=0.7, cl.cex = 0.7, col = viridis(n=100), tl.col = "black" ,addCoef.col=T, number.cex=0.5)
+
+```
+
+
+First, the data will be scaled (x - mean(x)) / sd(x)). Then we create a categorical variable of the crime-variable with quantiles as break points. Then we remove the old crim variable, and add the categorised crime variable into the dataframe instead. 
+```{r, message=FALSE, warning=FALSE}
+boston_scaled <- scale(Boston)
+
+boston_scaled <- as.data.frame(boston_scaled)
+
+summary(boston_scaled)
+
+bins <- quantile(boston_scaled$crim)
+crime <- cut(boston_scaled$crim, breaks=bins, include.lowest=T, label=c("low", "med_low", "med_high", "high"))
+table(crime)
+
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+boston_scaled <- data.frame(boston_scaled, crime)
+
+```
+
+Next the data will be divided to train and test sets. 
+
+```{r, message=FALSE, warning=FALSE}
+
+n <- 506
+ind <- sample(n, size = n * 0.8)
+train <- boston_scaled[ind,]
+test<-boston_scaled[-ind,]
+correct_classes <- test$crime
+test <- dplyr::select(test, -crime)
+
+
+
+```
+
+
+Next I run a LDA discriminant analysis. The analysis identifies the high crime rate class rather well, however a few med_high classes would be wrongly classified. The predictions among low crime category is also good. However, in the mid categories, the classification could be better. Rad, ie., access to radial highways, is the strongest predictor in this model. Proportion of residential land and NOx being the second largest estimates. 
+
+```{r, message=FALSE, warning=FALSE}
+
+# MASS and train are available
+
+# linear discriminant analysis
+lda.fit <- lda(crime ~., data = train)
+
+# print the lda.fit object
+lda.fit
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "blue", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+# plot the lda results
+plot(lda.fit, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.fit, myscale = 2.2)
+
+lda.pred <- predict(lda.fit, newdata = test)
+table(correct = correct_classes, predicted = lda.pred$class)
+
+
+
+```
+
+Next I re-run and scale the Boston data set and calculate distances between the observations.
+
+```{r, message=FALSE, warning=FALSE}
+
+data("Boston")
+
+boston_scaled_k <- scale(Boston)
+
+boston_scaled_k <- as.data.frame(boston_scaled_k)
+
+summary(dist(boston_scaled_k))
+
+```
+
+Next the data will be clustered with K-means. The largest drop in the plot appears at two (2) clusters. Therefore, a two-cluster solution test follows.  
+
+```{r, message=FALSE, warning=FALSE}
+kmax <- 10
+set.seed(123)
+totws <- sapply(1:kmax, function(k){kmeans(boston_scaled_k, k)$tot.withinss})
+qplot(x = 1:kmax, y=totws, geom='line') + theme_bw() +
+  ylab("Total within sum of squares")
+
+
+```
+
+A two cluster solution is plotted below. As anticipated from the density plots before, it looks like that the same variables correspond to the two cluster solution that were eminent from the density-plots. Non-retail business acres per town (indus) and property-tax rate (tax) can be seen very clearly. Also NOx levels seem to be nicely clustered to different clusters. The density plots are shown here aswell for a scroll-free comparison. 
+
+```{r, message=FALSE, warning=FALSE, fig.width=20, fig.height=20}
+kme <- kmeans(boston_scaled_k, centers = 2)
+pairs(boston_scaled_k, col=kme$cluster)
+
+```
+```{r, message=FALSE, warning=FALSE}
+
+boston_scaled_k %>%
+  gather(key=var_name, value = value) %>%
+  ggplot(aes(x=value)) +
+  geom_density() +
+  facet_wrap(~var_name, scales="free") + theme_bw()
+```
+
