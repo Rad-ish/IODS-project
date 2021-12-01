@@ -1,0 +1,203 @@
+# Exercise 5
+
+In this exercise, PCA and MCA analysis are practiced with two different data sets. 
+
+## PCA and HDI-data
+
+For the PCA,  data used is the Human Development (HDI) index of UNDP. The data used in this exercise has observations from 155 countries of eight variables listed below. Further information of the data set and the variables can be found [here](http://hdr.undp.org/sites/default/files/hdr2015_technical_notes.pdf).
+
+As variables used in this exercise have been wrangled further, below follows an explanation of each variable:
+
+* Edu2.FM is the ratio of female and male populations having secondary education. 
+* Labo.FM is the ratio of males and females in labor force.
+* Edu.Exp is the expected years in education
+* Life.Exp Life expectancy at birth
+* GNI Gross National Income per Capita
+* Mat.Mor Maternal mortality rate per 100 000 births
+* Ado.Birth Adolescent birth rate per 1000 women ages 15--19
+* Parli.F % of females in the parliament 
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.width=20, fig.height=20}
+h <- read.csv('./data/human.csv', header= T, row.names = 1)
+library(GGally)
+library(corrplot)
+library(tidyverse)
+library(dplyr)
+library(viridis)
+
+str(h)
+
+```
+
+Following, you can find summaries and figures of the data at hand. We find, that there are large discrepancies in the data set, i.e., large inequality in between countries. From summaries, we see that more males are given the opportunity to finish secondary education compared to females and males are also more often in the labor force. The excepted years in education varies from 5 to 20 years, both mean and median being around 13 years. Life expectancy ranges from 49 to 83.5, maternal mortality rate from 0,001 % to 1,1 %. Adolescent birth-rate varies from 0,06 % to 20,5 %. Also, there are parliaments with no females, to parliaments having 57.5% female representatives. 
+
+From correlations, we see that maternal mortality rate is related to adolescent birth rate (r = .76). Expected years in education is positively correlated with life expectancy (r = .79), GNI (r = .62) and negatively with both maternal mortality (r = -.74) and adolescent birth rate (r = -.70), indicating that both expected years in education and life expectancy being properties of countries with higher GNI. 
+
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+summary(h)
+
+
+my_fn <- function(data, mapping, method="p", use="pairwise", ...){
+
+              # grab data
+              x <- eval_data_col(data, mapping$x)
+              y <- eval_data_col(data, mapping$y)
+
+              # calculate correlation
+              corr <- cor(x, y, method=method, use=use)
+
+              # calculate colour based on correlation value
+              # Here I have set a correlation of minus one to blue, 
+              # zero to white, and one to red 
+              # Change this to suit: possibly extend to add as an argument of `my_fn`
+              colFn <- colorRampPalette(c("blue", "white", "red"), interpolate ='spline')
+              fill <- colFn(100)[findInterval(corr, seq(-1, 1, length=100))]
+
+              ggally_cor(data = data, mapping = mapping, ...) + 
+                theme_void() +
+                theme(panel.background = element_rect(fill=fill))
+            } #this function was written by user20650 from stackoverflow, #https://stackoverflow.com/questions/45873483/ggpairs-plot-with-heatmap-of-correlation-values
+
+
+ggpairs(h, 
+        upper = list(continuous = my_fn), lower=list(combo=wrap("facethist", binwidth=20, size=1)))
+
+
+
+h %>% 
+  gather(key=var_name, value = value) %>% 
+  ggplot(aes(x=value)) +
+  geom_histogram() +
+  facet_wrap(~var_name, scales = "free_x") +
+  theme_bw() 
+
+
+
+```
+
+
+First we run PCA on non-scaled data, which naturally doesn't make much sense since the scale of GNI is out of the roof compared to other scales (see graph below). It would imply that GNI alone explained 100% of the variance in the data. Therefore it is reasonable to scale the data before doing PCA, which follows.
+
+
+```{r, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+
+pca_h <- prcomp(h)
+
+
+s <- summary(pca_h)
+s
+
+pca_pr1 <- round(100*s$importance[2,], digits = 1) 
+
+pca_pr1
+
+pc_lab <- paste0(names(pca_pr1), " (", pca_pr1, "%)")
+
+
+biplot(pca_h, choises=1:2, cex=c(0.8,1), col=c("slategray3","royalblue3"), xlab=pc_lab[1], ylab=pc_lab[2])
+
+
+```
+
+
+Therefore it is reasonable to scale the data before doing PCA.
+
+On the bi-plot below, the arrows correspond to correlations. We see, that Edu.Exp, Life.Exp, Edu2.FM and GNI have a positive correlation, and these are negatively correlated to mat.mor and ado.birth. First component comprises of these aforementioned factors explaining 53.6 % of the variance, and second component of the male-female ratios in labor force and parliament explaining 16.2 % of the variance. 
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+
+h_scaled <- scale(h)
+
+pca_h_s <- prcomp(h_scaled)
+
+
+s2 <- summary(pca_h_s)
+s2
+
+pca_pr2 <- round(100*s2$importance[2,], digits = 1) 
+
+pca_pr2
+
+pc_lab2 <- paste0(names(pca_pr2), " (", pca_pr2, "%)")
+
+
+biplot(pca_h_s, choises=1:2, cex=c(0.8, 1), col=c("slategray3","royalblue3" ), xlab=pc_lab2[1], ylab=pc_lab2[2])
+
+
+
+
+
+```
+
+
+
+
+
+## MCA and Tea-data
+
+The Tea data set from *FactoMineR*-library has 300 observations of 36 variables. The data set is about tea preferences. It is worth to note that there is not much documentation on this data set available, so some of my assumptions are pure guesses at best. 
+
+First we do a MCA on the whole data, excluding the variable of age as it was not a factor. As the plot doesn't make much sense, I chose a few variables that I assumed to correspond to different dimensions.
+
+I chose the following variables: 
+
+* sport (if the individual does sports), 
+* diuretic (if the tea is diuretic; I assume that people doing sports would avoid diuretic teas; or maybe take advantage of them in the case of combat-sports weight-ins), 
+* frequency of drinking tea
+* where they buy their teas
+* how (using teabags, unpackaged or both)
+* sugar (drinking with or without sugar)
+* slimming ()
+*relaxing
+*effect on health
+*feminine
+*sex
+*age group
+
+With these factors, the explained variance is enhanced on dimension 1. On dimension one, the factors correspond to being young or old, sportsman or not, the tea being diuretic or not. In a sense, correspondance to lifestyles can be seen here. On the second dimension shows a loading between those who prefer quality/speciality rather than big brands; the ones who prefer buying their teas from tea shops and unpacked versus those who buy teabags from chainstores. 
+
+Further, with *plotellipses*-function it is possible to draw confidence ellipses. There we can confirm that the type of the tea and where it is bought are most clearly separate groups from each other. 
+
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+library(FactoMineR)
+data("tea")
+str(tea) #drop age, since it is not a factor
+dim(tea)
+#ggpairs(tea)
+
+
+tea_s <- subset(tea, select= -age) #drop age from df
+
+mca <- MCA(tea_s, graph=F)
+summary(mca)
+plot(mca, invisible=c("ind"), habillage="quali", graph.type = "ggplot") 
+
+ plotellipses(mca, graph.type = c("ggplot"))
+
+
+
+keep_b <- c("Sport", "diuretic", "frequency", "where", "how", "sugar", "slimming", "relaxing", "effect.on.health", "feminine", "sex", "age_Q")
+
+tea_b <- dplyr::select(tea, all_of(keep_b))
+
+mca_b <- MCA(tea_b, graph=F)
+summary(mca_b)
+plot(mca_b, invisible=c("ind"), habillage="quali", graph.type="ggplot")
+
+
+ plotellipses(mca_b, graph.type = c("ggplot"))
+
+
+
+```
+
