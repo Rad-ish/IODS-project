@@ -50,3 +50,13 @@ output:
 
 
 ```
+
+***
+
+```{r child = "chapter6.rmd"}
+
+
+```
+
+
+

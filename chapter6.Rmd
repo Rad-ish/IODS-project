@@ -1,0 +1,469 @@
+# Exercise 6
+
+## Longitudinal data
+
+In this exercise two longitudinal data sets are analysed. The structure of these data sets are seen below. Both data sets have been converted from wide to long data format in a separate R-script.  
+
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyverse)
+library(cowplot)
+library(sjPlot)
+
+BPRS <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/BPRS.txt", 
+                   sep= "", header=T) #reading this for the pairs
+BPRSL <- read.csv('./data/BPRSL.csv', header = T, sep=",") 
+RATSL <- read.csv('./data/RATSL.csv', header=T, sep=",")
+str(RATSL)
+str(BPRSL)
+
+
+BPRSL$treatment <- factor(BPRSL$treatment)
+BPRSL$subject <- factor(BPRSL$subject)
+
+RATSL$Group <- factor(RATSL$Group)
+RATSL$ID <- factor(RATSL$ID)
+
+```
+## Does diet matter among rats?
+
+First we begin with a data set of rats. The rats (N=16) were assigned to three different groups and each group had different diets. In this exercise it is assessed if the growth of the rats differed between groups, i.e., as a function of their diets. 
+
+
+First, we visualize the individual (rats as individuals) growth profiles in raw-scores throughout the weight-ins.
+
+```{r, message=FALSE, warning=FALSE}
+
+ggplot(RATSL, aes(time, Weight, color=ID, linetype=ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  scale_color_viridis_d(begin=.01, end=.8) +
+  facet_wrap(~Group, labeller=label_both) +
+  theme_bw() +
+  theme(legend.position ="none") 
+
+
+```
+
+
+
+Next we scale (X - Mean(X) / SD(X)) the weight variable by group and time and plot it again. Here we can see relative growth in terms of means and standard deviations. After this I plotted the mean summaries by group. 
+
+From the scaled growth by time plot, it is quite clear that in each group there is possibly one outlier. 
+
+```{r, message=FALSE, warning=FALSE}
+
+#RATSL.s <- RATSL %>% 
+#  group_by(Group, time) %>% 
+#   mutate_at(c(4), funs(c(scale(.)))) %>% ungroup()
+#glimpse(RATSL.s)
+#glimpse(RATSL)
+
+RATSL.s <- RATSL %>%
+  group_by(Group, time) %>%
+  mutate(Weight.s = (Weight - mean(Weight))/sd(Weight) ) %>%
+  ungroup()
+
+
+ggplot(RATSL.s, aes(time, Weight.s, linetype=ID, color=ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  scale_color_viridis_d(begin=.01, end=.8) +
+  facet_wrap(~Group, labeller=label_both) +
+  theme_bw() +
+  theme(legend.position ="none") +
+  ylab("Weight Scaled (x - mean(x) / sd (x)")
+
+n <- RATSL$ID %>% unique() %>% length()
+
+RATSL.sb <- RATSL %>%
+  group_by(Group, time) %>%
+  summarise(mean = mean(Weight), se = sd(Weight)/sqrt(n) ) %>%
+  ungroup()
+
+
+
+ggplot(RATSL.sb, aes(time, mean, color=Group, linetype=Group, shape=Group)) +
+  geom_line() +
+  geom_point(size=2.5) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, linetype="1"), width=0.3) +
+  scale_color_viridis_d(begin=.01, end=.8) +
+  theme_bw() +
+  theme(legend.position = c(0.9,0.4)) +
+  ylab("Scaled Means of Weight") +
+  labs(title="Scaled means and standard errors of weight among groups of rats") 
+  
+
+
+```
+
+Next we create a summary data by individual and group to identify the possible outliers. For each group we find that the  boxplot function marks one outlier. To get the exact number of the outlier for each group, I simply checked the min and max by group from the tibble below. Outliers were 238.9 in group 1, 594.0 in group 2 and 495.2 in group 3. These are filtered out and boxplot without outliers plottet again. As the outliers were treated out of the groups, we see that the differences in group means are larger than they seemed (e.g. in between group 2 and 3) before removing the outliers. 
+
+```{r, message=FALSE, warning=FALSE}
+RATSL8S <- RATSL %>%
+  filter(time > 1) %>%
+  group_by(Group, ID) %>%
+  summarise( mean=mean(Weight) ) %>%
+  ungroup()
+
+glimpse(RATSL8S)
+
+rm1 <- ggplot(RATSL8S, aes(x = Group, y = mean, fill=Group)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4) +
+  scale_fill_viridis_d(begin=.01, end=.8) +
+  scale_y_continuous(name = "mean(Weight) by group") +
+  theme_bw() +
+  labs(title="With outliers")
+
+RATSL8S %>%
+  group_by(Group) %>%
+summarize(min = min(mean),
+          max = max(mean)) %>%
+  ungroup()
+
+RATSL8S1 <- filter(RATSL8S, mean != 238.9, mean != 594.0, mean != 495.2)
+RATSL8S1$mean
+
+rm2 <- ggplot(RATSL8S1, aes(x = Group, y = mean, fill=Group)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4) +
+  scale_fill_viridis_d(begin=.01, end=.8) +
+  scale_y_continuous(name = "mean(Weight) by group") +
+  theme_bw() +
+  labs(title="Without outliers") +
+  theme(legend.position = c(0.9,0.4))
+
+
+
+cowplot::plot_grid(rm1 + 
+                  theme(legend.position = "none"), 
+                   rm2, nrow=1)
+
+
+
+
+```
+
+As the outliers are treated, testing the mean difference is more meaningful. In this exercise we were to follow a certain study protocol, and at this point a t-test of group means would have been done. However, I ran an one-way ANOVA, as it offers the possibility to compare multiple independent groups instead of two. 
+
+From the results of one-way ANOVA We find the mean differences between group being significant F=2836, p < .001. From the TukeyHSD test below we find group comparisons as mean differences with confidence intervals. 
+
+Further, I fit a linear model with data to which we add the baseline (first weight-in) weight of the rats. From this model it is clear that the baseline measure is what predicts the mean weight and group differences are not significant, in other words, it seems that the diets were not what predicted the mean weight, rather the baseline (i.e., genetics) weight was what mattered. Alongside the summaries, the marginal effects (model basad predictions) are plotted below, where the association of baseline weight to mean weight can be visually examined.    
+
+```{r, message=FALSE, warning=FALSE}
+
+RATS <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/rats.txt", 
+                   sep="", header=T)
+
+ratanova <-aov(mean ~ Group , data = RATSL8S1)
+summary(ratanova)
+
+TukeyHSD(ratanova)
+
+RATSL8S2 <- RATSL8S %>%
+  mutate(baseline = RATS$WD1)
+
+ratlm <- lm(mean ~ baseline + Group, data = RATSL8S2)
+summary(ratlm)
+anova(ratlm)
+
+plot_model(ratlm, type = "pred", terms = c("baseline", "Group")) +
+                    scale_fill_viridis_d(option = "D", begin=.01, end=.8) + 
+                    scale_color_viridis_d(begin=.01, end=.8) +
+                    labs(title = "") + theme_bw() +
+                    labs(title="Predictions of mean weight by baseline weight")
+
+
+
+```
+
+## Brief psychiatric measure scale data
+
+Next we assess the data where 40 male subjects have been assessed the brief psychiatric measure scale (BPRS) on an eight-week-period in randomized to two treatment groups, 20 subjects in each. In the original data the subjects were numbered from one to 20 in each group, creating the problem of false doubles (i.e., subject 1 in treatment 1 and treatment 2). Therefore in the data wrangling part in a separate R-file, a column for identification ('id') was added in order to distinguish in between subjects in plots and analyses where they were not separated by treatment-group.
+
+Unfortunately information about the treatment in question was not available for me as Davis (2002) from which the data is from, was not available. But as the BPRS is used for e.g. assessment of schizophrenia, and the analyses below show that these treatment groups do not differ very largely from each other in regard to their outcomes, I suppose both groups received quite similar treatment with some variation.
+
+Below, the A-plot is an OLS-model of treatment groups, B is an lowess-model and C follow the example from the book (which I did not find very meaningful with this data, also scatter plots of the BPRS can be found below, open picture in a new window to enlarge). At this point I find it interesting to take a look at if OLS or lowess can show us an effect in between these treatment groups. After this this aforementioned plots,  individual BPRS-scores are plotted by treatment group. At this level of analysis, it looks like the BPRS scores of treatment group 1 decreases more than in treatment group 2, however, the treatment groups do not differ significantly as the CI-bands for both model-plots overlap. Lets see what happens when we dig a bit deeper. 
+
+
+```{r, message=FALSE, warning=FALSE}
+#Note for peer-reviewer; BPRS data was read already at the first chunk and factored
+glimpse(BPRSL)
+
+b1 <- ggplot(BPRSL, aes(x = week, y = bprs, color=treatment)) +
+  geom_smooth(method="lm") +
+   scale_color_viridis_d(begin=.01, end=.8)
+b2 <- ggplot(BPRSL, aes(x = week, y = bprs, color=treatment)) +
+  geom_smooth(method="loess") +
+   scale_color_viridis_d(begin=.01, end=.8)
+
+b3 <- ggplot(BPRSL, aes(x=week, y=bprs, color=treatment)) +
+  geom_text(aes(label=treatment), show.legend=T) +
+   scale_color_viridis_d(begin=.01, end=.8)
+
+legend2 <- get_legend(b1 + theme(legend.position = "left"))
+
+cowplot::plot_grid(b1 + theme(legend.position = "none"), 
+                   b2 + theme(legend.position = "none"),
+                   b3 + theme(legend.position = "none"), 
+                               legend2, nrow=1,
+                   labels=LETTERS[1:3])
+
+ggplot(BPRSL, aes(week, bprs, linetype=subject, color=subject)) +
+  geom_line(aes(group = subject)) +
+  geom_point(alpha=0.3) +
+  scale_linetype_manual(values=rep(1:10, times=4)) +
+  scale_color_viridis_d() +
+  facet_grid(~treatment, labeller=label_both) +
+  theme_bw() +
+  theme(legend.position ="none") 
+
+pairs(BPRS)
+
+```
+
+
+Creating a random intercept model (b_lmer) and random intercept and slope model (b_lmer2) to account for subject-level differences. It still looks like that treatment 1 is more effective compared to treatment 2 (Estimate = .57 with random intercept and 1.51 in random slope compared to treatment 1).
+
+```{r, message=FALSE, warning=FALSE}
+b_lmer <- lme4::lmer(bprs ~ week + treatment + (1 | id), data = BPRSL, REML = F)
+summary(b_lmer)
+
+b_lmer2 <- lme4::lmer(bprs ~ week + treatment + (week | id), data = BPRSL, REML = F)
+summary(b_lmer2)
+
+anova(b_lmer, b_lmer2)
+
+
+
+```
+Below we compare the random intercept slope model to the same model with interaction of week * treatment. However, from the anova we see that this interaction model isn't a better fit to the data. I will plot both the b_lmer2 (main effects with random slope) and b_lmer3 (interaction with random slope) below so you can inspect the difference.
+
+```{r, message=FALSE, warning=FALSE}
+
+b_lmer3 <- lme4::lmer(bprs ~ week * treatment + (week | id), data = BPRSL, REML = F)
+summary(b_lmer3)
+
+anova(b_lmer3, b_lmer2)
+
+
+
+```
+
+Next I plotted the fitted model and observed model by treatment groups. I also wanted to visualise the differences in between main effects + random slope and interaction effect + random slope. From the line-graph the difference is almost unnoticeable but in the forest plots (labeled A and B) the differences are more apparent. However, I guess it is safe to say that the take home message from these analyses and visualizations is that patients in treatment group 1 were better off -- unless we agree that there was an outlier in treatment group 2. This should be taken into account here, which follows next.  
+
+
+```{r, message=FALSE, warning=FALSE}
+
+BPRSL2 <- BPRSL
+BPRSL2$id <- as.factor(BPRSL2$id)
+
+BPRSL2$Fitted <- fitted(b_lmer2, bprs)
+
+
+
+colnames(BPRSL2)[5] <- "Observed"
+
+reshaped <- reshape::melt(BPRSL2, 
+               id.vars=c("treatment","subject", "id", "week"), 
+               measure.vars=c("Observed", "Fitted"),
+               variable.name = "key",
+               value.name = "bprs")
+
+ggplot(reshaped, aes(x=week, y=value, group=id, color=id)) +
+  geom_line(aes(linetype=treatment)) +
+  scale_color_viridis_d(guide="colourbar", option="D", begin="0.01", end="0.8") +
+  facet_wrap(~ variable) +
+  theme(legend.position="right") +
+  xlab("Week") +
+  ylab("BPRS Score") +
+  labs(title="Observed and Fitted BPRS-score with main effects and random slope")
+
+##
+
+BPRSL3 <- BPRSL2
+
+BPRSL3$Fitted <- fitted(b_lmer3, bprs)
+
+
+
+colnames(BPRSL3)[5] <- "Observed"
+
+reshaped2 <- reshape::melt(BPRSL3, 
+               id.vars=c("treatment","subject", "id", "week"), 
+               measure.vars=c("Observed", "Fitted"),
+               variable.name = "key",
+               value.name = "bprs")
+
+ggplot(reshaped2, aes(x=week, y=value, group=id, color=id)) +
+  geom_line(aes(linetype=treatment)) +
+  scale_color_viridis_d(guide="colourbar", option="D", begin="0.01", end="0.8") +
+  facet_wrap(~ variable) +
+  theme(legend.position="right") +
+  xlab("Week") +
+  ylab("BPRS Score") +
+  labs(title="Observed and Fitted BPRS-score with interaction and random slope")
+
+
+f1 <-plot_model(b_lmer2, type = "pred", terms = c("treatment", "week")) +
+                    scale_fill_viridis_d(option = "D", begin=.01, end=.8) + 
+                    scale_color_viridis_d(begin=.01, end=.8) +
+                    labs(title = "") + theme_bw() +
+                    labs(title="Fitted BPRS-score \n with main effects \n and random slope")
+
+
+f2 <- plot_model(b_lmer3, type = "pred", terms = c("treatment", "week")) +
+                    scale_fill_viridis_d(option = "D", begin=.01, end=.8) + 
+                    scale_color_viridis_d(begin=.01, end=.8) +
+                    labs(title = "") + theme_bw() +
+                    labs(title="Fitted BPRS-score \n with interaction \n and random slope") 
+  
+
+f2_l <- get_legend(f2 + theme(legend.position = "right"))
+
+cowplot::plot_grid(f1 + theme(legend.position = "none"), 
+                   f2 + theme(legend.position = "none"),
+                   align = 'vh',
+                   f2_l,
+                               nrow=1,ncol=3,
+                   labels=LETTERS[1:2])
+
+
+
+
+```
+
+
+
+## Fitting again without the outlier
+
+As from the first plot (observed BPRS-scores), it was clear that in treatment group 2 there was one outlier, which was clearly deviant from other subjects. It may therefore be wise to redo analyses with this subject removed from the data set. Here follows the same analyses as above, but id 31 (the identified outlier) is removed from the data. Looking at the results now, we see that in all models the T-values are so low, that the estimates are due to pure chance, i.e., the estimate difference between treatment groups is not statistically significant. 
+
+```{r, message=FALSE, warning=FALSE}
+
+BPRSL_o <- subset(BPRSL, id!="31")
+
+###Observed plot ####
+ggplot(BPRSL_o, aes(week, bprs, linetype=subject, color=subject)) +
+  geom_line(aes(group = subject)) +
+  geom_point(alpha=0.3) +
+  scale_linetype_manual(values=rep(1:10, times=4)) +
+  scale_color_viridis_d() +
+  facet_grid(~treatment, labeller=label_both) +
+  theme_bw() +
+  theme(legend.position ="none") +
+  labs(title="Observations without outlier in treatment group 2")
+
+
+### Lmers ####
+b_lmer_o <- lme4::lmer(bprs ~ week + treatment + (1 | id), data = BPRSL_o, REML = F)
+summary(b_lmer)
+
+b_lmer2_o <- lme4::lmer(bprs ~ week + treatment + (week | id), data = BPRSL_o, REML = F)
+summary(b_lmer2)
+
+anova(b_lmer_o, b_lmer2_o)
+
+b_lmer3_o <- lme4::lmer(bprs ~ week * treatment + (week | id), data = BPRSL_o, REML = F)
+summary(b_lmer3)
+
+anova(b_lmer3_o, b_lmer2_o)
+
+
+### plots of fits ####
+BPRSL2_o <- BPRSL_o
+BPRSL2_o$id <- as.factor(BPRSL2_o$id)
+
+BPRSL2_o$Fitted <- fitted(b_lmer2_o, bprs)
+
+
+
+colnames(BPRSL2_o)[5] <- "Observed"
+
+reshaped_o <- reshape::melt(BPRSL2_o, 
+               id.vars=c("treatment","subject", "id", "week"), 
+               measure.vars=c("Observed", "Fitted"),
+               variable.name = "key",
+               value.name = "bprs")
+
+z1 <- ggplot(reshaped_o, aes(x=week, y=value, group=id, color=id)) +
+  geom_line(aes(linetype=treatment)) +
+  scale_color_viridis_d(guide="colourbar", option="D", begin="0.01", end="0.8") +
+  facet_wrap(~ variable) +
+  theme(legend.position="right") +
+  xlab("Week") +
+  ylab("BPRS Score") +
+  labs(title="Observed and Fitted \n BPRS-score with main effects \n and random slope", 
+       subtitle="Outlier removed from \n treatment group 2")
+
+##
+
+BPRSL3_o <- BPRSL2_o
+
+BPRSL3_o$Fitted <- fitted(b_lmer3_o, bprs)
+
+
+
+colnames(BPRSL3_o)[5] <- "Observed"
+
+reshaped_o <- reshape::melt(BPRSL3_o, 
+               id.vars=c("treatment","subject", "id", "week"), 
+               measure.vars=c("Observed", "Fitted"),
+               variable.name = "key",
+               value.name = "bprs")
+
+z2 <- ggplot(reshaped_o, aes(x=week, y=value, group=id, color=id)) +
+  geom_line(aes(linetype=treatment)) +
+  scale_color_viridis_d(guide="colourbar", option="D", begin="0.01", end="0.8") +
+  facet_wrap(~ variable) +
+  theme(legend.position="right") +
+  xlab("Week") +
+  ylab("BPRS Score") +
+  labs(title="Observed and Fitted \n BPRS-score with interaction \n and random slope", 
+       subtitle="Outlier removed from \n treatment group 2")
+
+z2_l <- get_legend(z2 + theme(legend.position = "right"))
+
+
+zgrid <- cowplot::plot_grid(z1 + theme(legend.position = "none"), 
+                   z2 + theme(legend.position = "none"),
+              
+                   align="hv",
+                               ncol=2,
+                   labels=LETTERS[1:2])
+
+cowplot::plot_grid(zgrid, z2_l, ncol = 2, rel_widths = c(1, .2))
+
+
+
+
+f1_o <-plot_model(b_lmer2_o, type = "pred", terms = c("treatment", "week")) +
+                    scale_fill_viridis_d(option = "D", begin=.01, end=.8) + 
+                    scale_color_viridis_d(begin=.01, end=.8) +
+                    labs(title = "") + theme_bw() +
+                    labs(title="Fitted BPRS-score \n with main effects \n and random slope",
+                         subtitle="Outlier removed from \n treatment group 2")
+
+
+f2_o <- plot_model(b_lmer3_o, type = "pred", terms = c("treatment", "week")) +
+                    scale_fill_viridis_d(option = "D", begin=.01, end=.8) + 
+                    scale_color_viridis_d(begin=.01, end=.8) +
+                    labs(title = "") + theme_bw() +
+                    labs(title="Fitted BPRS-score \n with interaction \n and random slope",
+                         subtitle="Outlier removed from \n treatment group 2")
+
+
+cowplot::plot_grid(f1_o + theme(legend.position = "none"), 
+                   f2_o + theme(legend.position = "none"),
+                   align = "hv",
+                   f2_l,
+                               nrow=1,ncol=3,
+                   labels=LETTERS[1:2])
+
+
+
+
+```
+
