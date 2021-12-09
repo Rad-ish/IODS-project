@@ -150,7 +150,7 @@ As the outliers are treated, testing the mean difference is more meaningful. In 
 
 From the results of one-way ANOVA We find the mean differences between group being significant F=2836, p < .001. From the TukeyHSD test below we find group comparisons as mean differences with confidence intervals. 
 
-Further, I fit a linear model with data to which we add the baseline (first weight-in) weight of the rats. From this model it is clear that the baseline measure is what predicts the mean weight and group differences are not significant, in other words, it seems that the diets were not what predicted the mean weight, rather the baseline (i.e., genetics) weight was what mattered. Alongside the summaries, the marginal effects (model basad predictions) are plotted below, where the association of baseline weight to mean weight can be visually examined.    
+Further, I fit a linear model with data to which we add the baseline (first weight-in) weight of the rats. From this model it is clear that the baseline measure is what predicts the mean weight and group differences are not significant, in other words, it seems that the diets were not what predicted the mean weight, rather the baseline (i.e., genetics) weight was what mattered. Alongside the summaries, the marginal effects (model based predictions) are plotted below, where the association of baseline weight to mean weight can be visually examined.    
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -185,7 +185,7 @@ Next we assess the data where 40 male subjects have been assessed the brief psyc
 
 Unfortunately information about the treatment in question was not available for me as Davis (2002) from which the data is from, was not available. But as the BPRS is used for e.g. assessment of schizophrenia, and the analyses below show that these treatment groups do not differ very largely from each other in regard to their outcomes, I suppose both groups received quite similar treatment with some variation.
 
-Below, the A-plot is an OLS-model of treatment groups, B is an lowess-model and C follow the example from the book (which I did not find very meaningful with this data, also scatter plots of the BPRS can be found below, open picture in a new window to enlarge). At this point I find it interesting to take a look at if OLS or lowess can show us an effect in between these treatment groups. After this this aforementioned plots,  individual BPRS-scores are plotted by treatment group. At this level of analysis, it looks like the BPRS scores of treatment group 1 decreases more than in treatment group 2, however, the treatment groups do not differ significantly as the CI-bands for both model-plots overlap. Lets see what happens when we dig a bit deeper. 
+Below, the A-plot is an OLS-model of treatment groups, B is an lowess-model and C follow the example from the book (which I did not find very meaningful with this data, also scatter plots of the BPRS can be found below, open picture in a new window to enlarge). At this point I find it interesting to take a look at if OLS or lowess can show us an effect in between these treatment groups. After these aforementioned plots,  individual BPRS-scores are plotted by treatment group. At this level of analysis, it looks like the BPRS scores of treatment group 1 decreases more than in treatment group 2, however, the treatment groups do not differ significantly as the CI-bands for both model-plots overlap. Lets see what happens when we dig a bit deeper. 
 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -252,7 +252,7 @@ anova(b_lmer3, b_lmer2)
 
 ```
 
-Next I plotted the fitted model and observed model by treatment groups. I also wanted to visualise the differences in between main effects + random slope and interaction effect + random slope. From the line-graph the difference is almost unnoticeable but in the forest plots (labeled A and B) the differences are more apparent. However, I guess it is safe to say that the take home message from these analyses and visualizations is that patients in treatment group 1 were better off -- unless we agree that there was an outlier in treatment group 2. This should be taken into account here, which follows next.  
+Next I plotted the fitted model and observed model by treatment groups. I also wanted to visualise the differences in between main effects + random slope and interaction effect + random slope. From the line-graph the difference is almost unnoticeable but in the forest plots (labeled A and B) the differences are more apparent. However, I guess it is safe to say that the take home message from these analyses and visualizations is that patients in treatment group 1 were only slightly better off, as T values were very low -- unless we agree that there was an outlier in treatment group 2, that should be taken into account here, which follows next.  
 
 
 ```{r, message=FALSE, warning=FALSE}
